@@ -1,0 +1,22 @@
+{
+    "name": "project-juancastro",
+    "version": "1.0.0",
+    "description": "product management API REST system",
+    "main": "app.js",
+    "scripts": {
+      "start":"node ./src/app.js",
+      "dev":"node --watch ./src/app.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "type": "module",
+    "keywords": [],
+    "author": "Juan Castro",
+    "license": "ISC",
+    "dependencies": {
+      "express": "^4.21.1"
+    },
+    "devDependencies": {
+      "@types/express": "^5.0.0",
+      "@types/node": "^22.7.5"
+    }
+  }
