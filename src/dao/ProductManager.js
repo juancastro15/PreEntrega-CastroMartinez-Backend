@@ -1,73 +1,71 @@
-import fs from "fs"
+const fs = require('fs');
+const path = require('path');
+const { getDirname } = require('../utils');
 
-export default class ProductManager{
-    #path = ""
-    constructor(filePath){
-        this.#path = filePath 
-    } 
-    
-    async getProducts(){
-        let check_file = fs.existsSync(this.#path)
-        if (check_file) {
-            return JSON.parse(await fs.promises.readFile(this.#path, {encoding:"utf-8"}))
-        } else {
-            return []
-        }
+const productsFilePath = path.join(getDirname(), 'src', 'data', 'products.json');
+
+class ProductManager {
+  constructor() {
+    this.products = [];
+    this.loadProducts();
+  }
+
+  // Cargar productos desde el archivo
+  loadProducts() {
+    if (fs.existsSync(productsFilePath)) {
+      const data = fs.readFileSync(productsFilePath, 'utf-8');
+      this.products = JSON.parse(data);
     }
+  }
 
-    async addProduct(title, description, code, price, status, stock, category, thumbnail){
-        let productos = await this.getProducts()
-        
-        let id=1
-        if(productos.length>0){
-            id=productos[productos.length - 1].id + 1
-        }
+  // Guardar productos en el archivo
+  saveProducts() {
+    fs.writeFileSync(productsFilePath, JSON.stringify(this.products, null, 2));
+  }
 
-        let newProduct = {id, title, description, code, price, status, stock, category, thumbnail}
+  // Listar todos los productos (con opción de limit)
+  getAll(limit) {
+    return limit ? this.products.slice(0, limit) : this.products;
+  }
 
-        productos.push(newProduct)
-        
-        await fs.promises.writeFile(this.#path, JSON.stringify(productos, null, 4))
+  // Obtener producto por ID
+  getById(id) {
+    return this.products.find(product => product.id === id);
+  }
 
-        return newProduct
+  // Agregar nuevo producto
+  addProduct(product) {
+    const newProduct = {
+      id: this.products.length + 1,
+      ...product,
+      status: true,
+    };
+    this.products.push(newProduct);
+    this.saveProducts();
+    return newProduct;
+  }
+
+  // Actualizar producto por ID
+  updateProduct(id, updates) {
+    const productIndex = this.products.findIndex(p => p.id === id);
+    if (productIndex !== -1) {
+      this.products[productIndex] = { ...this.products[productIndex], ...updates };
+      this.saveProducts();
+      return this.products[productIndex];
     }
+    return null;
+  }
 
-
-    async #checkProductID(productID){
-        let productos = await this.getProducts()
-        return productos.findIndex(prod => prod.id === productID)
+  // Eliminar producto por ID
+  deleteProduct(id) {
+    const productIndex = this.products.findIndex(p => p.id === id);
+    if (productIndex !== -1) {
+      const deletedProduct = this.products.splice(productIndex, 1);
+      this.saveProducts();
+      return deletedProduct;
     }
-
-    async getProductById(productID){
-        //buscar en el arreglo el producto que coincida con el id, si no, error::NOT FOUND
-        let productos = await this.getProducts()
-        let productIndex = await this.#checkProductID(productID)
-        if (productIndex === -1){
-            return 
-        }
-        return productos[productIndex]
-    }
-
-    async updateProduct(productID, newFields){
-        let productos = await this.getProducts()
-        let product = productos.find(prod => prod.id === productID)
-
-        if ('id' in newFields) {
-            delete newFields.id; // Ignora el cambio de id
-        }
-        Object.assign(product, newFields)
-        
-        await fs.promises.writeFile(this.#path, JSON.stringify(productos, null, 4))
-
-        return product
-    }
-
-    async deleteProduct(productID){
-        let productos = await this.getProducts()
-        productos = productos.filter(prod => prod.id !== productID)
-        
-        await fs.promises.writeFile(this.#path, JSON.stringify(productos, null, 4))
-
-        return productos
-    }
+    return null;
+  }
 }
+
+module.exports = ProductManager;

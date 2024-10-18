@@ -1,7 +1,6 @@
-import {fileURLToPath} from 'url';
-import { dirname } from 'path';
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Función para obtener la ruta absoluta
+const getDirname = () => path.resolve();
 
-export default __dirname;
+module.exports = { getDirname };
